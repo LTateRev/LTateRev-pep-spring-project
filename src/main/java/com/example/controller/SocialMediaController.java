@@ -7,7 +7,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,13 +73,15 @@ public class SocialMediaController {
     }
 
     @GetMapping("/messages/{messageId}")
-    public ResponseEntity<Optional<Message>> getMessageById(@PathVariable int messageId){
-        Optional<Message> mess = messSer.messageById(messageId);
-        if (mess == null){
-            return ResponseEntity.ok(null);
-        } else{
-            return ResponseEntity.ok(mess);
-        }
+    public ResponseEntity<Message> getMessageById(@PathVariable int messageId){
+        Message mess = messSer.messageById(messageId).orElse(null);
+        return ResponseEntity.ok(mess);
+    }
+
+    @GetMapping("/accounts/{accountId}/messages")
+    public ResponseEntity<List<Message>> getMessageByAccount(@PathVariable int accountId){
+        List<Message> mess = messSer.messageByAccountId(accountId);
+        return ResponseEntity.ok(mess);
     }
 
     @PostMapping("/messages")
@@ -93,4 +97,31 @@ public class SocialMediaController {
             return ResponseEntity.ok(createdMessage);
         }
     }
+
+    @PatchMapping("/messages/{messageId}")
+    public ResponseEntity<Integer> updateMessageTxt(@PathVariable int messageId, @RequestBody Message updateMess){
+        String newMess = updateMess.getMessageText();
+        if(newMess == null || newMess.isEmpty() || newMess.length() > 255){
+            return ResponseEntity.status(400).build();
+        }
+        int checkUpdate = messSer.updateMessage(messageId, newMess);
+
+        if (checkUpdate == 1){
+            return ResponseEntity.ok(1);
+        } else {
+            return ResponseEntity.status(400).build();
+        }
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<?> deleteMessage(@PathVariable int messageId){
+        int deletedMess = messSer.deleteMessageById(messageId);
+
+        if (deletedMess == 1) {
+            return ResponseEntity.ok(1);
+        } else {
+            return ResponseEntity.ok().build();
+        }
+    }
+
 }

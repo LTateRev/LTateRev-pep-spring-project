@@ -23,7 +23,26 @@ public class MessageService {
         return messRep.findById(id);
     }
 
+    public List<Message> messageByAccountId(int accountId){
+        return messRep.findByPostedBy(accountId);
+    }
+
     public Message createMessage(Message message){
         return messRep.save(message);
+    }
+
+    public int updateMessage(int messageId, String newMessage){
+        Optional<Message> checkMess = messRep.findById(messageId);
+        if (checkMess.isPresent()){
+            Message mess = checkMess.get();
+            mess.setMessageText(newMessage);
+            messRep.save(mess);
+            return 1;
+        }
+        return 0;
+    }
+
+    public int deleteMessageById(int messageId){
+        return messRep.deleteByMessageId(messageId);
     }
 }
